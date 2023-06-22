@@ -5,39 +5,66 @@ import {
   InvocationContext,
 } from '@azure/functions';
 
-// import { ChatClient } from '@azure/communication-chat';
-// import { AzureCommunicationTokenCredential } from '@azure/communication-common';
 import { CommunicationIdentityClient } from '@azure/communication-identity';
+import { UserStorage } from '../UserStorage';
 
-// let endpointUrl = process.env['ChatEndpointUrl'];
-// let secretKey = process.env['ChatSecret'];
 let connectionString = process.env['ChatConnectionString'];
-
-// let chatClient = new ChatClient(
-//   endpointUrl,
-//   new AzureCommunicationTokenCredential(secretKey)
-// );
+let tableStorageConnnString = process.env['TableStorageConnectionString'];
 
 console.log('Azure Communication Chat client created!');
 export async function GetToken(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  context.log(`Http function processed request for url "${request.url}"`);
+  context.log(`Token "${request.url}"`);
 
   context.log(connectionString);
 
-  const name = request.query.get('name') || (await request.text()) || 'world';
+  var data = (await request.json()) as any;
+  console.log('Data = ' + data);
 
+  // MAJOR ISSUE: The email is not being passed in the request body.
+  // We need to pull this from a JWT token or something.
+  const email = data.email;
+  // No reason to pass in userId in a production scenario.
+  let userId = data.userId;
+
+  var userStorage = new UserStorage(tableStorageConnnString);
   const identityClient = new CommunicationIdentityClient(connectionString);
-  const user = await identityClient.createUser();
 
-  // const token = await identityClient.getToken(user, ['chat']);
-  return { body: `Hello, ${name}!` };
+  if (!userId || userId == '') {
+    userId = await userStorage.getUserIdByEmail(email);
+  }
+
+  let user: any = null;
+  if (!userId || userId == '') {
+    context.log('Creating new user');
+
+    user = await identityClient.createUser();
+    userId = user.communicationUserId;
+    userStorage.saveUser(email, userId);
+  } else {
+    context.log('User already exists');
+    user = { communicationUserId: userId };
+  }
+
+  // https://learn.microsoft.com/en-us/javascript/api/overview/azure/communication-identity-readme?view=azure-node-latest
+  const token = await identityClient.getToken(user, ['chat']);
+
+  const response = JSON.stringify({
+    token: token.token,
+    expiresOn: token.expiresOn,
+    userId: user.communicationUserId,
+    email: email,
+  });
+  context.log(`Token response: "${response}"`);
+  return {
+    body: response,
+  };
 }
 
-app.http('GetToken', {
-  methods: ['GET'],
+app.http('Init', {
+  methods: ['POST'],
   authLevel: 'anonymous',
   handler: GetToken,
 });
