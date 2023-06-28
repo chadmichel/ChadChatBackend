@@ -19,11 +19,20 @@ export async function LogMessage(
   var fromUserId = request.headers.get('userId');
   var formUserEmail = request.headers.get('userEmail');
 
+  const profanity = filter.isProfane(data.message);
   var message = filter.clean(data.message);
   var threadId = data.threadId;
 
   const chatStorage = Util.getChatStorage();
   chatStorage.logMessage(threadId, message, fromUserId, formUserEmail, false);
+
+  chatStorage.updateLastMessage(
+    threadId,
+    message,
+    fromUserId,
+    formUserEmail,
+    profanity
+  );
 
   var response = {
     message: message,

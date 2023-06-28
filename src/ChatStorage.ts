@@ -75,6 +75,35 @@ export class ChatStorage {
     });
   }
 
+  async updateLastMessage(
+    threadId: string,
+    message: string,
+    fromUserId: string,
+    fromUserEmail: string,
+    profanity: boolean
+  ) {
+    const tableClient = this.createTableClient('threads');
+    const result = await tableClient.getEntity(this.defaultChatGroup, threadId);
+    if (result) {
+      await tableClient.upsertEntity({
+        partitionKey: this.defaultChatGroup,
+        rowKey: threadId,
+        topic: result.topic,
+        createdTime: result.createdTime,
+        createdByUserId: result.createdByUserId,
+        createdByEmail: result.createdByEmail,
+        invitedUserId: result.invitedUserId,
+        invitedUserEmail: result.invitedUserEmail,
+        lastMessageTime: new Date(),
+        lastMessage: message,
+        lastMessageSenderUserId: fromUserId,
+        lastMessageSenderEmail: fromUserEmail,
+        members: result.members,
+        profanity: profanity,
+      });
+    }
+  }
+
   async getChatThreadById(id: string): Promise<ChatThread> {
     const tableClient = this.createTableClient('threads');
     const result = await tableClient.getEntity(this.defaultChatGroup, id);
