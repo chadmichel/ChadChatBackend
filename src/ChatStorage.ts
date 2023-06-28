@@ -24,6 +24,7 @@ export class ChatStorage {
   }
 
   createChatThread(chatThread: ChatThread) {
+    // We are 3x storing the data to improve query performance
     const tableClient = this.createTableClient('threads');
     tableClient.createEntity({
       partitionKey: this.defaultChatGroup,
@@ -82,8 +83,9 @@ export class ChatStorage {
     fromUserEmail: string,
     profanity: boolean
   ) {
+    // Since we 3x store the data for query purposes we need to update 3x the copies.
     const tableClient = this.createTableClient('threads');
-    const result = await tableClient.getEntity(this.defaultChatGroup, threadId);
+    let result = await tableClient.getEntity(this.defaultChatGroup, threadId);
     if (result) {
       await tableClient.upsertEntity({
         partitionKey: this.defaultChatGroup,
@@ -101,6 +103,46 @@ export class ChatStorage {
         members: result.members,
         profanity: profanity,
       });
+      var createdById = result.createdByUserId as string;
+      var invitedById = result.invitedUserId as string;
+      result = await tableClient.getEntity(createdById, threadId);
+      if (result) {
+        await tableClient.upsertEntity({
+          partitionKey: createdById,
+          rowKey: threadId,
+          topic: result.topic,
+          createdTime: result.createdTime,
+          createdByUserId: result.createdByUserId,
+          createdByEmail: result.createdByEmail,
+          invitedUserId: result.invitedUserId,
+          invitedUserEmail: result.invitedUserEmail,
+          lastMessageTime: new Date(),
+          lastMessage: message,
+          lastMessageSenderUserId: fromUserId,
+          lastMessageSenderEmail: fromUserEmail,
+          members: result.members,
+          profanity: profanity,
+        });
+      }
+      result = await tableClient.getEntity(invitedById, threadId);
+      if (result) {
+        await tableClient.upsertEntity({
+          partitionKey: invitedById,
+          rowKey: threadId,
+          topic: result.topic,
+          createdTime: result.createdTime,
+          createdByUserId: result.createdByUserId,
+          createdByEmail: result.createdByEmail,
+          invitedUserId: result.invitedUserId,
+          invitedUserEmail: result.invitedUserEmail,
+          lastMessageTime: new Date(),
+          lastMessage: message,
+          lastMessageSenderUserId: fromUserId,
+          lastMessageSenderEmail: fromUserEmail,
+          members: result.members,
+          profanity: profanity,
+        });
+      }
     }
   }
 
@@ -125,6 +167,8 @@ export class ChatStorage {
   }
 
   async getChats(userId: string): Promise<ChatThread[]> {
+    // We store a custom version of each chat for each user.
+    // This allows us to query by partition key for that user.
     const tableClient = this.createTableClient('threads');
     const query = `PartitionKey eq '${userId}'`;
     const result = tableClient.listEntities({
