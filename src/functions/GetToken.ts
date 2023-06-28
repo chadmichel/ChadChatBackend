@@ -9,6 +9,7 @@ import { CommunicationIdentityClient } from '@azure/communication-identity';
 import { UserStorage } from '../UserStorage';
 
 let connectionString = process.env['ChatConnectionString'];
+let connectionStringChatEndpoint = process.env['ChatConnectionStringEndpoint'];
 let tableStorageConnnString = process.env['TableStorageConnectionString'];
 
 console.log('Azure Communication Chat client created!');
@@ -16,7 +17,7 @@ export async function GetToken(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  context.log(`Token "${request.url}"`);
+  context.log(`begin: Token "${request.url}"`);
 
   context.log(connectionString);
 
@@ -48,16 +49,18 @@ export async function GetToken(
     user = { communicationUserId: userId };
   }
 
+  const tokenOptions = { tokenExpiresInMinutes: 1440 }; // 1440 minutes in a day
   // https://learn.microsoft.com/en-us/javascript/api/overview/azure/communication-identity-readme?view=azure-node-latest
-  const token = await identityClient.getToken(user, ['chat']);
+  const token = await identityClient.getToken(user, ['chat'], tokenOptions);
 
   const response = JSON.stringify({
     token: token.token,
     expiresOn: token.expiresOn,
     userId: user.communicationUserId,
     email: email,
+    endpoint: connectionStringChatEndpoint,
   });
-  context.log(`Token response: "${response}"`);
+  context.log(`end: Token "${response}"`);
   return {
     body: response,
   };
