@@ -68,6 +68,6 @@ export async function GetToken(
 
 app.http('Init', {
   methods: ['POST'],
-  authLevel: 'anonymous',
+  authLevel: 'function',
   handler: GetToken,
 });

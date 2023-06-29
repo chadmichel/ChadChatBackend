@@ -43,7 +43,7 @@ export async function LogMessage(
 }
 
 app.http('LogMessage', {
-  methods: ['GET', 'POST'],
-  authLevel: 'anonymous',
+  methods: ['POST'],
+  authLevel: 'function',
   handler: LogMessage,
 });

@@ -38,6 +38,6 @@ export async function GetChats(
 
 app.http('GetChats', {
   methods: ['GET'],
-  authLevel: 'anonymous',
+  authLevel: 'function',
   handler: GetChats,
 });

@@ -74,6 +74,6 @@ export async function CreateChat(
 
 app.http('CreateChat', {
   methods: ['POST'],
-  authLevel: 'anonymous',
+  authLevel: 'function',
   handler: CreateChat,
 });
