@@ -31,6 +31,20 @@ Run `func start` for a dev server. This will run you endpoints on the default Az
 
 You can also run this directly from within VS Code.
 
+## Table Storage
+
+This project uses Azure Table Storage to store chat related information. It requires three tables to exist.
+
+- users
+- threads
+- messages
+
+The users table stores basic information about a user. It contains the user's email address and their azure communication user id.
+
+The threads table contains information about each chat thread. Each chat thread is duplicated in this table multiple times. There will be one copy of the chat thread for each member of the chat. The duplication of data is done to make searching chats by user faster. Listing all chats for a given user is just a query by primary key of the table.
+
+The message table holds chat messages. No duplication is done here. This is only done ofr logging purposes.
+
 ## Configuration
 
 To run this locally you should create a local.settings.json file. All of the values listed below MUST be provided. You can use emulator storage (azurite) for the storage account connection string. But you MUST use an Azure Communication Services Connection string for Chat.
