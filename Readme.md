@@ -79,6 +79,10 @@ az login --tenant <your tenant id>
 func azure functionapp publish <Azure Function Name>
 ```
 
+## Companion Frontend
+
+Link: https://github.com/chadmichel/ChadChatAngular
+
 ## Chat Sequence Diagrams
 
 1. Init
