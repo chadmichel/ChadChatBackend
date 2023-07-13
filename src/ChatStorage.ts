@@ -4,6 +4,9 @@ export class ChatStorage {
   private connectionString: string;
   private defaultChatGroup: string = 'threads';
 
+  private conversationTableName = 'conversations';
+  private messagesTableName = 'messages';
+
   constructor(connectionString) {
     this.connectionString = connectionString;
   }
@@ -25,7 +28,7 @@ export class ChatStorage {
 
   createChatThread(chatThread: ChatThread) {
     // We are 3x storing the data to improve query performance
-    const tableClient = this.createTableClient('threads');
+    const tableClient = this.createTableClient(this.conversationTableName);
     tableClient.createEntity({
       partitionKey: this.defaultChatGroup,
       rowKey: chatThread.threadId,
@@ -84,7 +87,7 @@ export class ChatStorage {
     profanity: boolean
   ) {
     // Since we 3x store the data for query purposes we need to update 3x the copies.
-    const tableClient = this.createTableClient('threads');
+    const tableClient = this.createTableClient(this.conversationTableName);
     let result = await tableClient.getEntity(this.defaultChatGroup, threadId);
     if (result) {
       await tableClient.upsertEntity({
@@ -147,7 +150,7 @@ export class ChatStorage {
   }
 
   async getChatThreadById(id: string): Promise<ChatThread> {
-    const tableClient = this.createTableClient('threads');
+    const tableClient = this.createTableClient(this.conversationTableName);
     const result = await tableClient.getEntity(this.defaultChatGroup, id);
     return {
       threadId: result.rowKey,
@@ -169,7 +172,7 @@ export class ChatStorage {
   async getChats(userId: string): Promise<ChatThread[]> {
     // We store a custom version of each chat for each user.
     // This allows us to query by partition key for that user.
-    const tableClient = this.createTableClient('threads');
+    const tableClient = this.createTableClient(this.conversationTableName);
     const query = `PartitionKey eq '${userId}'`;
     const result = tableClient.listEntities({
       queryOptions: { filter: query },
@@ -203,7 +206,7 @@ export class ChatStorage {
     fromUserEmail: string,
     profanity: boolean
   ) {
-    const tableClient = this.createTableClient('messages');
+    const tableClient = this.createTableClient(this.messagesTableName);
     tableClient.createEntity({
       partitionKey: chatTheadId,
       rowKey: new Date().getTime().toString(),
