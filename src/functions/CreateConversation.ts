@@ -7,11 +7,11 @@ import {
 
 import { Util } from '../Util';
 
-export async function CreateChat(
+export async function CreateConversation(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  context.log(`Http function processed request for url "${request.url}"`);
+  context.log(`CreateConversation "${request.url}"`);
 
   var data = (await request.json()) as any;
   console.log('Data = ' + data);
@@ -49,7 +49,7 @@ export async function CreateChat(
   });
 
   chatStorage.createChatThread({
-    threadId: chatThreadId,
+    conversationId: chatThreadId,
 
     topic: topic,
     createdTime: new Date(),
@@ -69,11 +69,12 @@ export async function CreateChat(
     chatThreadId: chatThreadId,
   };
 
+  context.log('CreateConversation response = ' + JSON.stringify(response));
   return { body: JSON.stringify(response) };
 }
 
-app.http('CreateChat', {
+app.http('CreateConversation', {
   methods: ['POST'],
   authLevel: 'function',
-  handler: CreateChat,
+  handler: CreateConversation,
 });

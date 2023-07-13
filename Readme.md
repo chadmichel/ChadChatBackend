@@ -12,10 +12,10 @@ All calls but 'Init' assume Token (azure chat), userId, and userEmail are passed
 
 - Init
   - POST /api/Init
-- CreateChat
-  - POST /api/CreateChat
-- GetChats
-  - GET /api/GetChats
+- CreateConversation
+  - POST /api/CreateConversation
+- GetConversations
+  - GET /api/GetConversation
 - LogMessage
   - POST /api/LogMessage
 
@@ -36,7 +36,7 @@ You can also run this directly from within VS Code.
 This project uses Azure Table Storage to store chat related information. It requires three tables to exist.
 
 - users
-- threads
+- conversations
 - messages
 
 The users table stores basic information about a user. It contains the user's email address and their azure communication user id.
@@ -95,25 +95,25 @@ sequenceDiagram
     Function Backend->>+Frontend ChatService: Return User Token
 ```
 
-2. Create Chat
+2. Create Conversation
 
 ```mermaid
 sequenceDiagram
-    Frontend ChatService->>+Function Backend: 'CreateChat'
-    Function Backend->>+Azure Chat: Create Chat
-    Function Backend->>+Table Storage: Store Chat
-    Function Backend->>+Frontend ChatService: Return Chat Id
+    Frontend ChatService->>+Function Backend: 'CreateConversation'
+    Function Backend->>+Azure Chat: Create Conversation
+    Function Backend->>+Table Storage: Store Conversation
+    Function Backend->>+Frontend ChatService: Return Conversation Id
 ```
 
 3. Get Chat
 
 ```mermaid
 sequenceDiagram
-    Frontend ChatService->>+Function Backend: 'GetChats'
+    Frontend ChatService->>+Function Backend: 'GetConversations'
     Function Backend->>+Azure Chat: listChatThreads
-    Function Backend->>+Table Storage: getChats
+    Function Backend->>+Table Storage: getConversations
     Function Backend->>+Function Backend: filter list
-    Function Backend->>+Frontend ChatService: List of chats
+    Function Backend->>+Frontend ChatService: List of Conversations
 ```
 
 4. Send Messages
@@ -139,3 +139,5 @@ sequenceDiagram
 [Part 1 - Angular Setup](https://dontpaniclabs.com/blog/post/2023/04/27/building-a-chat-system-part-1/)
 
 [Part 2 - Azure Chat](https://dontpaniclabs.com/blog/post/2023/05/09/building-a-chat-system-part-2/)
+
+[Part 3 - Chat Storage](https://dontpaniclabs.com/blog/post/2023/07/05/building-a-chat-system-part-3/)

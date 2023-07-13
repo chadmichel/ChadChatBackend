@@ -2,15 +2,10 @@ import { TableClient, TableServiceClient } from '@azure/data-tables';
 
 export class UserStorage {
   private connectionString: string;
+  private userTableName = 'users';
+
   constructor(connectionString) {
     this.connectionString = connectionString;
-  }
-
-  createTableServiceClient(): TableServiceClient {
-    const client = TableServiceClient.fromConnectionString(
-      this.connectionString
-    );
-    return client;
   }
 
   createTableClient(tableName: string): TableClient {
@@ -22,7 +17,7 @@ export class UserStorage {
   }
 
   saveUser(email, userId) {
-    const tableClient = this.createTableClient('users');
+    const tableClient = this.createTableClient(this.userTableName);
     tableClient.createEntity({
       partitionKey: email,
       rowKey: userId,
@@ -30,7 +25,7 @@ export class UserStorage {
   }
 
   async getUserIdByEmail(email) {
-    const tableClient = this.createTableClient('users');
+    const tableClient = this.createTableClient(this.userTableName);
     const query = `PartitionKey eq '${email}'`;
     const result = tableClient.listEntities({
       queryOptions: { filter: query },

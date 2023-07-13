@@ -26,56 +26,56 @@ export class ChatStorage {
     return tableClient;
   }
 
-  createChatThread(chatThread: ChatThread) {
+  createChatThread(conversation: Converation) {
     // We are 3x storing the data to improve query performance
     const tableClient = this.createTableClient(this.conversationTableName);
     tableClient.createEntity({
       partitionKey: this.defaultChatGroup,
-      rowKey: chatThread.threadId,
-      topic: chatThread.topic,
-      createdTime: chatThread.createdTime,
-      createdByUserId: chatThread.createdByUserId,
-      createdByEmail: chatThread.createdByEmail,
-      invitedUserId: chatThread.invitedUserId,
-      invitedUserEmail: chatThread.invitedUserEmail,
-      lastMessageTime: chatThread.lastMessageTime,
-      lastMessage: chatThread.lastMessage,
-      lastMessageSenderUserId: chatThread.lastMessageSenderUserId,
-      lastMessageSenderEmail: chatThread.lastMessageSenderEmail,
-      members: JSON.stringify(chatThread.members),
-      profanity: chatThread.profanity,
+      rowKey: conversation.conversationId,
+      topic: conversation.topic,
+      createdTime: conversation.createdTime,
+      createdByUserId: conversation.createdByUserId,
+      createdByEmail: conversation.createdByEmail,
+      invitedUserId: conversation.invitedUserId,
+      invitedUserEmail: conversation.invitedUserEmail,
+      lastMessageTime: conversation.lastMessageTime,
+      lastMessage: conversation.lastMessage,
+      lastMessageSenderUserId: conversation.lastMessageSenderUserId,
+      lastMessageSenderEmail: conversation.lastMessageSenderEmail,
+      members: JSON.stringify(conversation.members),
+      profanity: conversation.profanity,
     });
     tableClient.createEntity({
-      partitionKey: chatThread.createdByUserId,
-      rowKey: chatThread.threadId,
-      topic: chatThread.topic,
-      createdTime: chatThread.createdTime,
-      createdByUserId: chatThread.createdByUserId,
-      createdByEmail: chatThread.createdByEmail,
-      invitedUserId: chatThread.invitedUserId,
-      invitedUserEmail: chatThread.invitedUserEmail,
-      lastMessageTime: chatThread.lastMessageTime,
-      lastMessage: chatThread.lastMessage,
-      lastMessageSenderUserId: chatThread.lastMessageSenderUserId,
-      lastMessageSenderEmail: chatThread.lastMessageSenderEmail,
-      members: JSON.stringify(chatThread.members),
-      profanity: chatThread.profanity,
+      partitionKey: conversation.createdByUserId,
+      rowKey: conversation.conversationId,
+      topic: conversation.topic,
+      createdTime: conversation.createdTime,
+      createdByUserId: conversation.createdByUserId,
+      createdByEmail: conversation.createdByEmail,
+      invitedUserId: conversation.invitedUserId,
+      invitedUserEmail: conversation.invitedUserEmail,
+      lastMessageTime: conversation.lastMessageTime,
+      lastMessage: conversation.lastMessage,
+      lastMessageSenderUserId: conversation.lastMessageSenderUserId,
+      lastMessageSenderEmail: conversation.lastMessageSenderEmail,
+      members: JSON.stringify(conversation.members),
+      profanity: conversation.profanity,
     });
     tableClient.createEntity({
-      partitionKey: chatThread.invitedUserId,
-      rowKey: chatThread.threadId,
-      topic: chatThread.topic,
-      createdTime: chatThread.createdTime,
-      createdByUserId: chatThread.createdByUserId,
-      createdByEmail: chatThread.createdByEmail,
-      invitedUserId: chatThread.invitedUserId,
-      invitedUserEmail: chatThread.invitedUserEmail,
-      lastMessageTime: chatThread.lastMessageTime,
-      lastMessage: chatThread.lastMessage,
-      lastMessageSenderUserId: chatThread.lastMessageSenderUserId,
-      lastMessageSenderEmail: chatThread.lastMessageSenderEmail,
-      members: JSON.stringify(chatThread.members),
-      profanity: chatThread.profanity,
+      partitionKey: conversation.invitedUserId,
+      rowKey: conversation.conversationId,
+      topic: conversation.topic,
+      createdTime: conversation.createdTime,
+      createdByUserId: conversation.createdByUserId,
+      createdByEmail: conversation.createdByEmail,
+      invitedUserId: conversation.invitedUserId,
+      invitedUserEmail: conversation.invitedUserEmail,
+      lastMessageTime: conversation.lastMessageTime,
+      lastMessage: conversation.lastMessage,
+      lastMessageSenderUserId: conversation.lastMessageSenderUserId,
+      lastMessageSenderEmail: conversation.lastMessageSenderEmail,
+      members: JSON.stringify(conversation.members),
+      profanity: conversation.profanity,
     });
   }
 
@@ -149,11 +149,11 @@ export class ChatStorage {
     }
   }
 
-  async getChatThreadById(id: string): Promise<ChatThread> {
+  async getChatThreadById(id: string): Promise<Converation> {
     const tableClient = this.createTableClient(this.conversationTableName);
     const result = await tableClient.getEntity(this.defaultChatGroup, id);
     return {
-      threadId: result.rowKey,
+      conversationId: result.rowKey,
       topic: result.topic as string,
       createdTime: result.createdTime as Date,
       createdByUserId: result.createdByUserId as string,
@@ -169,7 +169,7 @@ export class ChatStorage {
     };
   }
 
-  async getChats(userId: string): Promise<ChatThread[]> {
+  async getChats(userId: string): Promise<Converation[]> {
     // We store a custom version of each chat for each user.
     // This allows us to query by partition key for that user.
     const tableClient = this.createTableClient(this.conversationTableName);
@@ -177,11 +177,11 @@ export class ChatStorage {
     const result = tableClient.listEntities({
       queryOptions: { filter: query },
     });
-    const chatThreads: ChatThread[] = [];
+    const chatThreads: Converation[] = [];
     for await (const entity of result) {
       console.log(entity.rowKey);
       chatThreads.push({
-        threadId: entity.rowKey,
+        conversationId: entity.rowKey,
         topic: entity.topic as string,
         createdTime: entity.createdTime as Date,
         createdByUserId: entity.createdByUserId as string,
@@ -224,8 +224,8 @@ export interface ChatUser {
   lastReadTime: Date;
 }
 
-export interface ChatThread {
-  threadId: string;
+export interface Converation {
+  conversationId: string;
   topic: string;
   createdTime: Date;
   createdByUserId: string;
